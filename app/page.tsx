@@ -3,15 +3,12 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Users, 
   FileText, 
   BookOpen, 
   Search, 
   Shield, 
   ChevronRight,
   Library,
-  Mail,
-  GraduationCap,
   Network,
   Menu,
   X,
@@ -20,21 +17,44 @@ import {
   Linkedin,
   Play,
   Mic,
-  Video
+  Video,
+  Box,
+  MessageSquare,
+  Cpu
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/theme-toggle"; // Properly imported
+import { ThemeToggle } from "@/components/theme-toggle";
+import Link from "next/link";
+import { getLandingUser } from "@/app/actions/user";
 
 // --- Components ---
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
+  // Handle Scroll
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Securely Fetch Auth State via Server Action
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const userData = await getLandingUser();
+        setUser(userData);
+      } catch (error) {
+        console.error("Failed to load user state", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUser();
   }, []);
 
   return (
@@ -52,17 +72,37 @@ const Navbar = () => {
           <a href="#protocol" className="hover:text-[#00BC7D] transition-colors">Architecture</a>
           <a href="#sessions" className="hover:text-[#00BC7D] transition-colors">Live Canvas</a>
           <a href="#scholars" className="hover:text-[#00BC7D] transition-colors">Registry</a>
+          <a href="#ecosystem" className="hover:text-[#00BC7D] transition-colors">Ecosystem</a>
         </div>
 
         <div className="flex items-center gap-4">
-          <ThemeToggle /> {/* Theme Toggle placed right before actions */}
+          <ThemeToggle />
+          
           <div className="hidden sm:flex items-center gap-3">
-            <Button variant="ghost" asChild className="rounded-full px-6 font-bold text-xs uppercase tracking-widest text-foreground/80 hover:text-foreground hover:bg-foreground/5">
-              <a href="/login">Login</a>
-            </Button>
-            <Button asChild className="bg-[#00BC7D] hover:bg-[#00BC7D]/90 text-white rounded-full px-8 h-12 text-xs uppercase font-extrabold tracking-widest shadow-[0_0_20px_rgba(0,188,125,0.3)] transition-all hover:scale-105 border-none">
-              <a href="/signup">Initialize</a>
-            </Button>
+            {!loading && (
+              user ? (
+                <Link href="/dashboard" className="group relative w-10 h-10 rounded-full border-2 border-[#00BC7D]/50 flex items-center justify-center bg-zinc-900 overflow-hidden hover:shadow-[0_0_15px_rgba(0,188,125,0.4)] transition-all hover:scale-105">
+                  {user.avatar_url ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={user.avatar_url} alt="Dashboard" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-[#00BC7D] font-black text-sm">{user.initial}</span>
+                  )}
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Network className="w-4 h-4 text-white" />
+                  </div>
+                </Link>
+              ) : (
+                <>
+                  <Button variant="ghost" asChild className="rounded-full px-6 font-bold text-xs uppercase tracking-widest text-foreground/80 hover:text-foreground hover:bg-foreground/5">
+                    <Link href="/login">Login</Link>
+                  </Button>
+                  <Button asChild className="bg-[#00BC7D] hover:bg-[#00BC7D]/90 text-white rounded-full px-8 h-12 text-xs uppercase font-extrabold tracking-widest shadow-[0_0_20px_rgba(0,188,125,0.3)] transition-all hover:scale-105 border-none">
+                    <Link href="/signup">Initialize</Link>
+                  </Button>
+                </>
+              )
+            )}
           </div>
           <button 
             className="lg:hidden p-2 text-foreground/80 hover:text-foreground"
@@ -85,13 +125,25 @@ const Navbar = () => {
             <a href="#protocol" onClick={() => setIsOpen(false)} className="text-sm font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground">Architecture</a>
             <a href="#sessions" onClick={() => setIsOpen(false)} className="text-sm font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground">Live Canvas</a>
             <a href="#scholars" onClick={() => setIsOpen(false)} className="text-sm font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground">Registry</a>
+            <a href="#ecosystem" onClick={() => setIsOpen(false)} className="text-sm font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground">Ecosystem</a>
             <div className="h-px bg-border my-2" />
-            <Button variant="outline" asChild className="rounded-full uppercase font-bold tracking-widest text-xs h-12 border-border text-foreground hover:bg-accent">
-              <a href="/login">Login</a>
-            </Button>
-            <Button asChild className="bg-[#00BC7D] text-white hover:bg-[#00BC7D]/90 rounded-full uppercase font-bold tracking-widest text-xs h-12 border-none">
-              <a href="/signup">Initialize</a>
-            </Button>
+            
+            {!loading && (
+              user ? (
+                <Button asChild className="bg-[#00BC7D] text-white hover:bg-[#00BC7D]/90 rounded-full uppercase font-bold tracking-widest text-xs h-12 border-none">
+                  <Link href="/dashboard" onClick={() => setIsOpen(false)}>Return to Dashboard</Link>
+                </Button>
+              ) : (
+                <>
+                  <Button variant="outline" asChild className="rounded-full uppercase font-bold tracking-widest text-xs h-12 border-border text-foreground hover:bg-accent">
+                    <Link href="/login" onClick={() => setIsOpen(false)}>Login</Link>
+                  </Button>
+                  <Button asChild className="bg-[#00BC7D] text-white hover:bg-[#00BC7D]/90 rounded-full uppercase font-bold tracking-widest text-xs h-12 border-none">
+                    <Link href="/signup" onClick={() => setIsOpen(false)}>Initialize</Link>
+                  </Button>
+                </>
+              )
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -144,19 +196,17 @@ const FullWidthHero = () => {
           transition={{ duration: 1.2, ease: "easeInOut" }}
           className="absolute inset-0 w-full h-full"
         >
-          {/* Theme adaptive overlay for images so text is always readable */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={slides[currentIndex].image}
             className="w-full h-full object-cover grayscale opacity-20 dark:opacity-30"
             alt="Campus Architecture"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/80 to-background" />
-          {/* Replaced the side gradient with a center radial gradient to highlight centered text */}
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,var(--background)_100%)] opacity-80" />
         </motion.div>
       </AnimatePresence>
 
-      {/* Added pb-24 here to create a safe zone so it NEVER overlaps the bottom slider buttons */}
       <div className="relative z-20 flex flex-col items-center text-center px-6 w-full max-w-5xl mx-auto pt-20 pb-24">
         <AnimatePresence mode="wait">
           <motion.div
@@ -172,17 +222,14 @@ const FullWidthHero = () => {
               {slides[currentIndex].tag}
             </div>
 
-            {/* Title is naturally centered now */}
             <h1 className="text-6xl md:text-8xl lg:text-[7.5rem] font-black tracking-tighter leading-[0.9] mb-8 text-foreground">
               {slides[currentIndex].title}
             </h1>
 
-            {/* Added mx-auto to center the max-width block of text */}
             <p className="text-lg md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed mb-12 font-medium">
               {slides[currentIndex].subtitle}
             </p>
 
-            {/* Forced justify-center instead of md:justify-start */}
             <div className="flex flex-wrap justify-center gap-4 mb-12">
               {slides[currentIndex].features.map((f, i) => (
                 <div key={i} className="flex items-center gap-2 px-5 py-2 rounded-full bg-[#00BC7D]/10 border border-[#00BC7D]/30 text-[10px] font-extrabold uppercase tracking-widest text-[#00BC7D] backdrop-blur-sm">
@@ -192,20 +239,18 @@ const FullWidthHero = () => {
               ))}
             </div>
 
-            {/* Forced justify-center on the buttons */}
             <div className="flex flex-col sm:flex-row gap-6 justify-center w-full">
-              <Button size="lg" className="bg-[#00BC7D] hover:bg-[#00BC7D]/90 text-white rounded-full h-16 px-14 text-sm uppercase font-extrabold tracking-[0.2em] shadow-[0_0_30px_rgba(0,188,125,0.4)] hover:scale-105 transition-all border-none">
-                Enter Network
+              <Button size="lg" asChild className="bg-[#00BC7D] hover:bg-[#00BC7D]/90 text-white rounded-full h-16 px-14 text-sm uppercase font-extrabold tracking-[0.2em] shadow-[0_0_30px_rgba(0,188,125,0.4)] hover:scale-105 transition-all border-none">
+                <Link href="/signup">Enter Network</Link>
               </Button>
-              <Button size="lg" variant="outline" className="rounded-full h-16 px-14 text-sm uppercase font-extrabold tracking-[0.2em] border-2 border-border bg-background/40 text-foreground hover:bg-foreground hover:text-background transition-all backdrop-blur-md">
-                View Protocol
+              <Button size="lg" variant="outline" asChild className="rounded-full h-16 px-14 text-sm uppercase font-extrabold tracking-[0.2em] border-2 border-border bg-background/40 text-foreground hover:bg-foreground hover:text-background transition-all backdrop-blur-md">
+                <a href="#protocol">View Protocol</a>
               </Button>
             </div>
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Progress Indicators - Forced to always be center-aligned at the bottom */}
       <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-4 z-30">
         {slides.map((_, idx) => (
           <button 
@@ -221,7 +266,6 @@ const FullWidthHero = () => {
     </div>
   );
 };
-
 
 const LiveSessions = () => {
   const sessions = [
@@ -323,11 +367,13 @@ const LiveSessions = () => {
                   <div className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-3">Host & Audience</div>
                   <div className="flex items-center">
                     <div className="relative">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={session.avatars[0]} alt="Host" className="w-12 h-12 rounded-full border-2 border-background relative z-30 object-cover" />
                       <div className="absolute -bottom-1 -right-1 bg-[#00BC7D] w-4 h-4 rounded-full border-2 border-background z-40" />
                     </div>
                     <div className="flex -space-x-4 ml-4">
                       {session.avatars.slice(1).map((avatar, idx) => (
+                        /* eslint-disable-next-line @next/next/no-img-element */
                         <img key={idx} src={avatar} alt="Viewer" className="w-10 h-10 rounded-full border-2 border-background opacity-80 object-cover" style={{ zIndex: 20 - idx }} />
                       ))}
                       <div className="w-10 h-10 rounded-full border-2 border-background bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground relative z-0">
@@ -426,6 +472,7 @@ const ExpertRegistry = () => (
         <div key={i} className="flex flex-col sm:flex-row items-center gap-8 p-6 bg-background rounded-[2rem] border border-border hover:border-[#00BC7D]/30 transition-all duration-300 cursor-pointer group shadow-sm hover:shadow-xl hover:scale-[1.02]">
           <div className="text-5xl font-black text-muted-foreground/20 tabular-nums ml-4 group-hover:text-[#00BC7D]/20 transition-colors">0{expert.rank}</div>
           <div className="w-24 h-24 rounded-full border-2 border-border shadow-sm overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-500 relative z-10 -ml-8 bg-background">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={expert.img} alt={expert.name} className="w-full h-full object-cover" />
           </div>
           <div className="flex-1 text-center sm:text-left mt-4 sm:mt-0">
@@ -446,6 +493,64 @@ const ExpertRegistry = () => (
   </div>
 );
 
+const EcosystemIntegrations = () => (
+  <section className="py-32 bg-background relative border-t border-border px-6 overflow-hidden" id="ecosystem">
+    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#00BC7D]/5 blur-[150px] rounded-full pointer-events-none" />
+    
+    <div className="relative z-10 max-w-[1600px] mx-auto">
+      <div className="text-center mb-20">
+        <div className="inline-flex items-center gap-2 mb-6 text-muted-foreground">
+          <Cpu className="w-4 h-4" />
+          <span className="text-[10px] font-bold uppercase tracking-[0.4em]">Open Ecosystem</span>
+        </div>
+        <h2 className="text-5xl md:text-7xl font-black tracking-tighter mb-6 uppercase leading-[0.9] text-foreground">
+          System <span className="text-[#00BC7D]">Integrations.</span>
+        </h2>
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto font-medium">
+          PeerGraph isn't another walled garden. Connect your existing academic and developer tools to supercharge your institutional workflow.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        
+        {/* Card 1 */}
+        <div className="p-10 bg-card border border-border rounded-[2rem] group hover:border-[#00BC7D]/40 transition-colors">
+          <div className="w-14 h-14 rounded-2xl bg-zinc-100 dark:bg-zinc-900 border border-border flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
+            <Box className="w-6 h-6 text-foreground" />
+          </div>
+          <h3 className="text-2xl font-black uppercase tracking-tighter mb-4">LMS Sync</h3>
+          <p className="text-muted-foreground font-medium leading-relaxed">
+            Automatically ingest PDFs, slide decks, and assignments directly from Canvas, Blackboard, or Moodle into your personal vector database.
+          </p>
+        </div>
+
+        {/* Card 2 */}
+        <div className="p-10 bg-card border border-border rounded-[2rem] group hover:border-[#00BC7D]/40 transition-colors">
+          <div className="w-14 h-14 rounded-2xl bg-zinc-100 dark:bg-zinc-900 border border-border flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
+            <Github className="w-6 h-6 text-foreground" />
+          </div>
+          <h3 className="text-2xl font-black uppercase tracking-tighter mb-4">Repo Review</h3>
+          <p className="text-muted-foreground font-medium leading-relaxed">
+            Link your GitHub repositories to live sessions. Highlight code, architect systems on the canvas, and push PRs directly from the study hub.
+          </p>
+        </div>
+
+        {/* Card 3 */}
+        <div className="p-10 bg-card border border-border rounded-[2rem] group hover:border-[#00BC7D]/40 transition-colors">
+          <div className="w-14 h-14 rounded-2xl bg-zinc-100 dark:bg-zinc-900 border border-border flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
+            <MessageSquare className="w-6 h-6 text-foreground" />
+          </div>
+          <h3 className="text-2xl font-black uppercase tracking-tighter mb-4">Comms Relay</h3>
+          <p className="text-muted-foreground font-medium leading-relaxed">
+            Route peer bounties and live session invites directly to your Discord servers or Slack channels so you never miss a high-value huddle.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+);
+
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-[#00BC7D] selection:text-white font-sans overflow-x-hidden">
@@ -456,39 +561,7 @@ export default function LandingPage() {
         <ProtocolSection />
         <LiveSessions />
         <ExpertRegistry />
-
-        {/* BOTTOM CTA */}
-        <section className="py-40 bg-background relative border-t border-border text-center px-6 overflow-hidden">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#00BC7D]/5 blur-[150px] rounded-full pointer-events-none" />
-          
-          <div className="relative z-10 max-w-4xl mx-auto">
-            <h2 className="text-5xl md:text-8xl font-black tracking-tighter mb-8 uppercase leading-[0.9] text-foreground">
-              Sync Your <br /> System.
-            </h2>
-            <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto font-medium">
-              Join the ecosystem. Input your university email to access your specific major's intelligence network.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row justify-center gap-4 max-w-xl mx-auto">
-              <div className="flex-1 bg-background px-6 py-4 flex items-center gap-4 border border-border rounded-full focus-within:border-[#00BC7D] transition-colors shadow-sm">
-                <Mail className="w-5 h-5 text-muted-foreground" />
-                <input 
-                  type="email" 
-                  placeholder="student@university.edu" 
-                  className="bg-transparent border-none outline-none flex-1 text-sm font-bold tracking-wider placeholder:text-muted-foreground text-foreground"
-                />
-              </div>
-              <Button className="bg-[#00BC7D] hover:bg-[#00BC7D]/90 text-white rounded-full h-auto py-5 px-12 font-extrabold text-xs uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(0,188,125,0.3)] hover:scale-105 transition-all w-full sm:w-auto border-none">
-                Initialize
-              </Button>
-            </div>
-            
-            <div className="flex items-center justify-center gap-2 mt-8 text-[10px] text-muted-foreground uppercase font-bold tracking-widest">
-              <GraduationCap className="w-4 h-4" /> 
-              Valid .edu credential required for registry entry.
-            </div>
-          </div>
-        </section>
+        <EcosystemIntegrations />
       </main>
 
       {/* FOOTER */}

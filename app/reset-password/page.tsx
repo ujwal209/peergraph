@@ -2,44 +2,53 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Library, Lock, Shield } from "lucide-react";
+import { Library, Lock, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { toast } from "sonner";
 import { updatePassword } from "@/app/actions/auth";
 
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 
 function ResetPasswordContent() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<{ type: 'error' | 'success', text: string } | null>(null);
+  
   const searchParams = useSearchParams();
+  const router = useRouter();
   const email = searchParams.get("email") || "";
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
+    setMessage(null);
+
     if (!password || !confirmPassword) {
-      toast.error("Please fill in all fields");
+      setMessage({ type: 'error', text: "Please fill in all fields" });
       return;
     }
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
+      setMessage({ type: 'error', text: "Passwords do not match" });
       return;
     }
 
     setLoading(true);
     try {
       const result = await updatePassword(password, email);
+      
       if (result?.error) {
-        toast.error(result.error);
+        setMessage({ type: 'error', text: result.error });
+        setLoading(false);
       } else {
-        toast.success("Identity Key Re-layered Successfully.");
+        setMessage({ type: 'success', text: "Identity Key Re-layered Successfully." });
+        // Redirect to login after a short delay so the user sees the success message
+        setTimeout(() => {
+          router.push('/login');
+        }, 1500);
       }
     } catch (error) {
-      toast.error("Failed to update password");
-    } finally {
+      setMessage({ type: 'error', text: "Failed to update password" });
       setLoading(false);
     }
   };
@@ -93,6 +102,22 @@ function ResetPasswordContent() {
           </div>
 
           <form className="space-y-6" onSubmit={handleUpdate}>
+            
+            {message && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }} 
+                animate={{ opacity: 1, y: 0 }}
+                className={`p-4 rounded-xl border flex items-center gap-3 text-xs font-bold uppercase tracking-widest ${
+                  message.type === 'error' 
+                    ? 'bg-red-500/10 border-red-500/20 text-red-500' 
+                    : 'bg-[#00BC7D]/10 border-[#00BC7D]/20 text-[#00BC7D]'
+                }`}
+              >
+                {message.type === 'error' ? <AlertCircle className="w-4 h-4 shrink-0" /> : <CheckCircle2 className="w-4 h-4 shrink-0" />}
+                {message.text}
+              </motion.div>
+            )}
+
             <div className="space-y-4">
               <div className="relative group">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-[#00BC7D] transition-colors" />

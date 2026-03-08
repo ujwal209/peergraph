@@ -3,38 +3,43 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Library, Mail, ChevronRight } from "lucide-react";
+import { Library, Mail, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { toast } from "sonner";
 import { sendPasswordResetOTP } from "@/app/actions/auth";
 import { useRouter } from "next/navigation";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<{ type: 'error' | 'success', text: string } | null>(null);
   const router = useRouter();
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
+    setMessage(null);
+
     if (!email) {
-      toast.error("Please enter your registered email");
+      setMessage({ type: 'error', text: "Please enter your registered email" });
       return;
     }
 
     setLoading(true);
     try {
       const result = await sendPasswordResetOTP(email);
+      
       if (result?.error) {
-        toast.error(result.error);
+        setMessage({ type: 'error', text: result.error });
+        setLoading(false);
       } else {
-        toast.success("Recovery sequence initiated.");
-        // If the user wants to use the OTP verification page for recovery:
-        router.push(`/verify?email=${encodeURIComponent(email)}&type=recovery`);
+        setMessage({ type: 'success', text: "Recovery sequence initiated." });
+        // Give the user a moment to see the success message before redirecting
+        setTimeout(() => {
+          router.push(`/verify?email=${encodeURIComponent(email)}&type=recovery`);
+        }, 1500);
       }
     } catch (error) {
-      toast.error("Failed to initiate recovery");
-    } finally {
+      setMessage({ type: 'error', text: "Failed to initiate recovery" });
       setLoading(false);
     }
   };
@@ -90,6 +95,22 @@ export default function ForgotPasswordPage() {
           </div>
 
           <form className="space-y-8" onSubmit={handleReset}>
+            
+            {message && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }} 
+                animate={{ opacity: 1, y: 0 }}
+                className={`p-4 rounded-xl border flex items-center gap-3 text-xs font-bold uppercase tracking-widest ${
+                  message.type === 'error' 
+                    ? 'bg-red-500/10 border-red-500/20 text-red-500' 
+                    : 'bg-[#00BC7D]/10 border-[#00BC7D]/20 text-[#00BC7D]'
+                }`}
+              >
+                {message.type === 'error' ? <AlertCircle className="w-4 h-4 shrink-0" /> : <CheckCircle2 className="w-4 h-4 shrink-0" />}
+                {message.text}
+              </motion.div>
+            )}
+
             <div className="relative group">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-[#00BC7D] transition-colors" />
               <input 

@@ -11,25 +11,12 @@ export async function saveOnboardingData(college: string, branch: string, avatar
     return { error: "Unauthenticated request" };
   }
 
-  // 1. Update the actual public.users database table
-  const { error: dbError } = await supabase
-    .from("users")
-    .update({
-      college: college,
-      branch: branch,
-      avatar_url: avatarUrl,
-      first_login: false, // Mark onboarding as complete in DB
-    })
-    .eq("id", user.id);
-
-  if (dbError) {
-    console.error("DB Update Error:", dbError);
-    return { error: "Failed to update user profile in database." };
-  }
-
-  // 2. Update auth metadata so layout.tsx can do a lightning-fast check
+  // Update auth metadata so layout.tsx can do a lightning-fast check
+  // Storing college and branch here as well since DB update is removed
   const { error: authError } = await supabase.auth.updateUser({
     data: {
+      college: college,
+      branch: branch,
       onboarded: true,
       avatar_url: avatarUrl,
     }

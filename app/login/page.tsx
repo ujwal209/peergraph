@@ -49,15 +49,20 @@ function LoginContent() {
 
       if (result?.error) {
         toast.error(result.error);
+        setLoading(false); // Stop loading only on actual error
       } else {
         toast.success("Identity Verified. Accessing Hub...");
-        // Redirect is handled by the server action, 
-        // but if it returned without redirecting it means success in some contexts
-        // However, our action redirects on success.
+        // Do NOT set loading to false here. Keep the button spinning while Next.js transitions the page!
       }
     } catch (error: any) {
+      // FIX: Next.js throws a special 'NEXT_REDIRECT' error to trigger page changes. 
+      // We must catch it and re-throw it so the redirect actually happens!
+      if (error?.message?.includes("NEXT_REDIRECT") || error?.digest?.includes("NEXT_REDIRECT")) {
+        throw error; 
+      }
+      
+      console.error(error);
       toast.error("Failed to verify identity");
-    } finally {
       setLoading(false);
     }
   };
