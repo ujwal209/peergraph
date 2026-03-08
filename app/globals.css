@@ -116,14 +116,87 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+@layer theme {
+  :root {
+    --brand-primary: oklch(0.6 0.25 260);
+    --brand-secondary: oklch(0.7 0.2 300);
+    --brand-accent: oklch(0.8 0.15 150);
+    --glass-bg: oklch(1 0 0 / 10%);
+    --glass-border: oklch(1 0 0 / 20%);
+    --mesh-grid: oklch(0 0 0 / 5%);
+  }
+
+  .dark {
+    --brand-primary: oklch(0.5 0.3 260);
+    --brand-secondary: oklch(0.6 0.25 300);
+    --brand-accent: oklch(0.7 0.2 150);
+    --glass-bg: oklch(0.145 0 0 / 40%);
+    --glass-border: oklch(1 0 0 / 10%);
+    --mesh-grid: oklch(1 0 0 / 5%);
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-[var(--glass-bg)] backdrop-blur-xl border border-[var(--glass-border)] shadow-2xl;
+  }
+  
+  .text-glow {
+    text-shadow: 0 0 20px var(--brand-primary);
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: .7; transform: scale(1.02); }
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-secondary)];
+  }
+
+  .command-center-gradient {
+    background: radial-gradient(circle at top center, oklch(0.6 0.2 260 / 0.15), transparent 70%);
+  }
+
+  .mesh-grid {
+    background-image: linear-gradient(to right, var(--mesh-grid) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--mesh-grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground selection:bg-[var(--brand-primary)] selection:text-white;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
   html {
-    @apply font-sans;
+    @apply font-sans scroll-smooth;
   }
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #00BC7D; /* Neon Green */
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #009d69;
 }
