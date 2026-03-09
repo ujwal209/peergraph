@@ -4,7 +4,7 @@ import Link from "next/link";
 import { signOut } from "@/app/actions/auth";
 import { 
   Library, BookOpen, MessageSquare, User, LogOut, 
-  Search, Bot, Users, Radio 
+  Search, Bot, Users, Radio, FileText 
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -21,12 +21,13 @@ export default async function DashboardLayout({
 
   const avatarUrl = user.user_metadata?.avatar_url;
 
+  // Updated Nav Links: Added Notes & PYQs. Profile is now accessed via the Avatar.
   const navLinks = [
     { label: "Curriculum", icon: BookOpen, href: "/dashboard/curriculum" },
+    { label: "Notes & PYQs", icon: FileText, href: "/dashboard/resources" },
     { label: "Discussions", icon: MessageSquare, href: "/dashboard/discussions" },
     { label: "AI Ask", icon: Bot, href: "/dashboard/ai-ask" },
     { label: "Sessions", icon: Users, href: "/dashboard/sessions" },
-    { label: "Profile", icon: User, href: "/dashboard/profile" },
   ];
 
   return (
@@ -34,7 +35,7 @@ export default async function DashboardLayout({
     <div className="flex flex-col min-h-screen bg-background group">
       
       {/* Top Navbar Navigation - Hides automatically if room page is open */}
-      <nav className="group-has-[#is-room-page]:hidden sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-xl h-16 flex items-center justify-between px-4 md:px-8 shadow-sm">
+      <nav className="group-has-[#is-room-page]:hidden sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-xl h-16 flex items-center justify-between px-3 md:px-8 shadow-sm">
         
         {/* Left Side: Branding & Navigation Links */}
         <div className="flex items-center gap-6 lg:gap-8">
@@ -61,7 +62,7 @@ export default async function DashboardLayout({
         </div>
 
         {/* Right Side: Actions, Theme, Profile, SignOut */}
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           
           <Link 
             href="/dashboard/sessions/create" 
@@ -79,29 +80,33 @@ export default async function DashboardLayout({
             />
           </div>
 
-          <div className="hidden sm:block">
+          {/* Theme Toggle is now visible on mobile */}
+          <div>
             <ThemeToggle />
           </div>
           
-          {avatarUrl ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img 
-              src={avatarUrl} 
-              alt="User Avatar" 
-              className="w-8 h-8 rounded-full border border-border object-cover shrink-0" 
-            />
-          ) : (
-            <div className="w-8 h-8 rounded-full border border-border bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0">
-              <User className="w-4 h-4 text-muted-foreground" />
-            </div>
-          )}
+          {/* Clickable Profile Avatar */}
+          <Link href="/dashboard/profile" className="shrink-0 group/avatar">
+            {avatarUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img 
+                src={avatarUrl} 
+                alt="User Avatar" 
+                className="w-8 h-8 rounded-full border border-border object-cover group-hover/avatar:border-[#00BC7D] transition-colors" 
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full border border-border bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center group-hover/avatar:border-[#00BC7D] transition-colors">
+                <User className="w-4 h-4 text-muted-foreground group-hover/avatar:text-[#00BC7D]" />
+              </div>
+            )}
+          </Link>
 
           <form action={signOut}>
             <button 
               title="Sign Out"
               className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-red-500/10 text-muted-foreground hover:text-red-500 transition-colors"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-4 h-4 shrink-0" />
             </button>
           </form>
         </div>
@@ -115,15 +120,15 @@ export default async function DashboardLayout({
       </main>
       
       {/* Mobile Bottom Navigation - Hides automatically if room page is open */}
-      <div className="group-has-[#is-room-page]:hidden md:hidden fixed bottom-0 left-0 right-0 border-t border-border bg-background/95 backdrop-blur-md px-2 py-3 flex justify-around items-center z-50 pb-[env(safe-area-inset-bottom)]">
+      <div className="group-has-[#is-room-page]:hidden md:hidden fixed bottom-0 left-0 right-0 border-t border-border bg-background/95 backdrop-blur-md px-1 py-3 flex justify-around items-center z-50 pb-[env(safe-area-inset-bottom)]">
          {navLinks.map((item) => (
             <Link 
               key={item.href} 
               href={item.href}
-              className="flex flex-col items-center gap-1 p-2 text-muted-foreground hover:text-[#00BC7D] transition-colors"
+              className="flex flex-col items-center gap-1.5 p-1 text-muted-foreground hover:text-[#00BC7D] transition-colors"
             >
               <item.icon className="w-5 h-5" />
-              <span className="text-[8px] font-bold uppercase tracking-widest text-center leading-tight">
+              <span className="text-[8px] font-bold uppercase tracking-widest text-center leading-none">
                 {item.label}
               </span>
             </Link>
