@@ -9,10 +9,11 @@ export async function login(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
-  const response = await apiClient.post("/auth/login", { email, password });
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
 
-  if (response.error || (response.detail && typeof response.detail === "string")) {
-    return { error: response.error || response.detail };
+  if (error) {
+    return { error: error.message };
   }
 
   revalidatePath("/", "layout");
@@ -57,4 +58,24 @@ export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/login");
+}
+
+export async function verifyResetOTP(email: string, token: string) {
+  const response = await apiClient.post("/auth/verify-reset-otp", { email, token });
+
+  if (response.error || response.detail) {
+    return { error: response.error || response.detail };
+  }
+
+  return { success: true };
+}
+
+export async function updatePassword(password: string, email: string) {
+  const response = await apiClient.post("/auth/update-password", { email, password });
+
+  if (response.error || response.detail) {
+    return { error: response.error || response.detail };
+  }
+
+  return { success: true };
 }
